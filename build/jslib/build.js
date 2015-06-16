@@ -455,6 +455,22 @@ define(function (require) {
                                 }
                             });
                         }
+                        if (module.excludeShallowMatcher) {
+                            //module.excludeShallowMatcher is an array of functions 
+                            // that filter the moduleName -> path map and return a list of module names to exclude.
+                            //
+                            //Shallow exclusions are just that module itself, and not
+                            // its nested dependencies.
+                            module.excludeShallowMatcher.forEach(function (excludeShallowMatcher) {
+                                var excludedModules = excludeShallowMatcher(module.layer.buildPathMap);
+                                if (excludedModules) {
+                                    excludedModules.forEach(function(excludedModule) {
+                                        var path = getOwn(module.layer.buildPathMap, excludedModule);
+                                        build.removeModulePath(excludedModule, path, module.layer);
+                                    });
+                                }
+                            });
+                        }
 
                         //Flatten them and collect the build output for each module.
                         return build.flattenModule(module, module.layer, config).then(function (builtModule) {
